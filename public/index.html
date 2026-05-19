@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reserva de Salas — Época de Exames</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Reserva de Salas</h1>
+    <p class="subtitle">Escola Secundária José Falcão · Época de Exames</p>
+  </header>
+
+  <main>
+    <nav id="day-strip" aria-label="Dias de exame"></nav>
+
+    <p id="day-info" class="day-info"></p>
+
+    <div id="grid-wrap">
+      <table id="grid" aria-label="Grelha de reservas">
+        <thead>
+          <tr id="grid-head"><th class="hour-col">Hora</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="empty-state" class="help" hidden>Não há blocos disponíveis neste dia.</p>
+    </div>
+
+    <p class="legend">
+      <span class="swatch free"></span> Livre — clique para reservar
+      <span class="swatch taken"></span> Reservada (definitivo)
+    </p>
+    <p class="legend-note">As reservas são permanentes. Confirme bem os dados antes de submeter.</p>
+  </main>
+
+  <div id="modal" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="modal-close" id="modal-close" aria-label="Fechar">×</button>
+      <h2 id="modal-title">Reservar sala</h2>
+      <p id="modal-summary" class="modal-summary"></p>
+      <form id="booking-form" autocomplete="off">
+        <label>
+          Nome do professor
+          <input id="f-name" type="text" required minlength="2" maxlength="80" autofocus />
+        </label>
+        <label>
+          Motivo
+          <textarea id="f-reason" required minlength="2" maxlength="280" rows="2"></textarea>
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="btn-ghost" id="modal-cancel">Cancelar</button>
+          <button type="submit" id="modal-submit">Confirmar reserva</button>
+        </div>
+        <p id="modal-msg" class="msg"></p>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

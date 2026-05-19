@@ -1,0 +1,15 @@
+{
+  "_comment": "Calendário Exames 1ª Fase 2025/2026. Edite 'lastExamEnds' (HH:MM, 24h) — após essa hora as salas ficam disponíveis em blocos de 1h até 'dayEndsAt'. Aulas terminam em 05/06/2026; só dias úteis com exames marcados estão incluídos.",
+  "rooms": [28, 29, 30, 31, 32, 36],
+  "dayEndsAt": "21:00",
+  "examDays": {
+    "2026-06-16": { "lastExamEnds": "17:30", "_exams": "9h30 12º Português/PLNM · 14h00 11º Economia A" },
+    "2026-06-17": { "lastExamEnds": "17:30", "_exams": "9h30 11º GeoD A · 9h30 9º Português/PLNM/PNE · 12h30 9º Oral PLNM · 14h00 11º Espanhol (547)" },
+    "2026-06-18": { "lastExamEnds": "13:00", "_exams": "9h30 11º Biologia e Geologia" },
+    "2026-06-19": { "lastExamEnds": "19:00", "_exams": "9h30 11º Geografia A · 14h00 Espanhol/Inglês · 16h00 Orais Espanhol/Inglês" },
+    "2026-06-22": { "lastExamEnds": "17:30", "_exams": "9h30 12º História A · 11º História B/HCA · 9º Matemática/PNE · 14h00 11º Literatura Portuguesa" },
+    "2026-06-23": { "lastExamEnds": "17:30", "_exams": "9h30 12º Matemática · 11º Mat B/MACS · 14h00 11º Inglês · Psicologia B" },
+    "2026-06-25": { "lastExamEnds": "19:00", "_exams": "9h30 11º Física e Química A · 14h00 Ed. Física · 16h00 Ed. Física PRÁTICA" },
+    "2026-06-26": { "lastExamEnds": "17:30", "_exams": "9h30 12º Desenho A · 14h00 11º Filosofia" }
+  }
+}
