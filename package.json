@@ -5,9 +5,14 @@
   "private": true,
   "scripts": {
     "dev": "wrangler pages dev public --d1=DB",
-    "db:exec": "wrangler d1 execute reservas --command"
+    "db:exec": "wrangler d1 execute reservas --command",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "wrangler": "^4.93.0"
   }
 }
