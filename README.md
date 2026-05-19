@@ -2,114 +2,116 @@
 
 Aplicação web para a Escola Secundária José Falcão. Permite a professores reservar uma das 6 salas (28, 29, 30, 31, 32, 36) em blocos de 1 hora, em dias de exame, após o último exame do dia terminar. Por ordem de chegada, sem autenticação. **As reservas são permanentes.**
 
-Pensada para correr no **Vercel** com **Vercel Postgres** durante a época de exames, e ser desativada quando terminar.
+Stack:
+- **Cloudflare Pages** (frontend estático + Pages Functions)
+- **Cloudflare D1** (base de dados SQLite serverless)
+- Sem servidor a manter, sem cartão de crédito, plano gratuito.
 
 ## Estrutura
 
-- `public/` — frontend (HTML/CSS/JS estático)
-- `api/schedule.js` — endpoint `GET /api/schedule` (lê `exam-schedule.json`)
-- `api/reservations.js` — endpoint `GET` (lista) e `POST` (cria) `/api/reservations`
-- `api/_lib.js` — lógica partilhada (geração de slots)
-- `exam-schedule.json` — calendário de exames editável (salas, dias, horas)
+- `public/` — frontend (HTML, CSS, JS)
+- `functions/api/schedule.js` — `GET /api/schedule`
+- `functions/api/reservations.js` — `GET` (listar) e `POST` (criar) `/api/reservations`
+- `functions/api/_lib.js` — partilhado (slots, validação)
+- `exam-schedule.json` — calendário editável
 
-## Deploy no Vercel — passo a passo
+## Deploy no Cloudflare Pages
 
-### 1. Pôr o código no GitHub
+### 1. Criar o projeto Pages
 
-```bash
-cd /home/mike/plsalaexames
-git init
-git add .
-git commit -m "Sistema de reservas de salas — versão inicial"
-# cria o repo (precisa do gh CLI autenticado)
-gh repo create plsalaexames --public --source . --push
+1. Abrir https://dash.cloudflare.com → **Workers & Pages** → **Create application** → separador **Pages** → **Connect to Git**.
+2. Autorizar o GitHub e escolher o repositório `plsalaexames`.
+3. Configurar:
+   - **Project name**: `plsalaexames` (vai dar o URL `plsalaexames.pages.dev`)
+   - **Production branch**: `main`
+   - **Framework preset**: `None`
+   - **Build command**: (deixar vazio)
+   - **Build output directory**: `public`
+4. Clicar **Save and Deploy**. Em ~30 s o site fica online. O frontend funciona; as APIs ainda falham (não há base de dados).
+
+### 2. Criar a base de dados D1
+
+1. Dashboard → **Workers & Pages** → **D1**.
+2. **Create database** → nome: `reservas` → **Create**.
+3. Separador **Console** da base de dados → colar e executar:
+
+```sql
+CREATE TABLE IF NOT EXISTS reservations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  teacher_name TEXT NOT NULL,
+  room INTEGER NOT NULL,
+  date TEXT NOT NULL,
+  hour INTEGER NOT NULL CHECK (hour BETWEEN 0 AND 23),
+  reason TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (room, date, hour)
+);
 ```
 
-Alternativa sem `gh`: criar manualmente em github.com/new e seguir as instruções para "push existing repo".
+(O código também cria a tabela automaticamente na primeira chamada, mas correr o SQL adianta o trabalho.)
 
-### 2. Importar para o Vercel
+### 3. Ligar a D1 ao projeto Pages
 
-1. Abrir https://vercel.com/new
-2. Login (com a conta GitHub é o mais simples)
-3. Clicar em **Import Project** e escolher o repositório `plsalaexames`
-4. **Framework Preset**: `Other`
-5. **Root Directory**: deixar como está
-6. **Build / Output / Install commands**: deixar como estão (vazios — Vercel detecta tudo)
-7. Clicar **Deploy**
-
-Ao fim de ~30 segundos o site fica online em `https://plsalaexames.vercel.app` (ou um nome similar). Neste ponto **o frontend funciona mas qualquer reserva falha** porque ainda não há base de dados.
-
-### 3. Criar a base de dados
-
-1. No dashboard do projeto Vercel, ir ao separador **Storage**
-2. Clicar **Create Database** → **Postgres** (powered by Neon, plano gratuito)
-3. Nome sugerido: `reservas`. Região: escolher `Frankfurt (fra1)` (mais perto de Portugal)
-4. Clicar **Create**
-5. Quando aparecer o ecrã de associação, garantir que o projeto `plsalaexames` está selecionado e clicar **Connect**
-
-Isto adiciona automaticamente as variáveis `POSTGRES_URL` (e relacionadas) ao projeto. Não é preciso editar nada à mão.
+1. Voltar ao projeto Pages → separador **Settings** → **Functions** → secção **D1 database bindings**.
+2. **Add binding**:
+   - **Variable name**: `DB` (em maiúsculas, exatamente assim — o código procura `env.DB`)
+   - **D1 database**: `reservas`
+3. **Save**.
 
 ### 4. Redeploy
 
-A primeira reserva criada vai automaticamente criar a tabela `reservations` (o código faz `CREATE TABLE IF NOT EXISTS` em cada pedido).
-
-Forçar redeploy (apanha as novas variáveis de ambiente):
-- No Vercel: separador **Deployments** → clicar nos `...` da última deployment → **Redeploy**
+Pages → separador **Deployments** → no último deploy clicar **Retry deployment** (ou fazer um `git push` qualquer). O novo deploy passa a ter acesso à D1.
 
 ### 5. Testar
 
-Abrir o URL público e fazer uma reserva. Verificar no Vercel:
-- Separador **Storage** → base de dados → **Data** → tabela `reservations` deve mostrar a linha criada.
+Abrir `https://plsalaexames.pages.dev`, fazer uma reserva. Confirmar no Dashboard → D1 → `reservas` → **Console**:
 
-## Editar o calendário depois do deploy
+```sql
+SELECT * FROM reservations;
+```
+
+## Editar o calendário
 
 ```bash
-# editar exam-schedule.json localmente
+# editar exam-schedule.json
 git add exam-schedule.json
-git commit -m "Atualiza calendário de exames"
+git commit -m "Atualiza calendário"
 git push
 ```
 
-O Vercel faz redeploy automático em cada push (~30 s).
+Cloudflare faz redeploy automático em cada push (~30 s).
 
-## Desenvolvimento local
+## Desenvolvimento local (opcional)
 
-Requer Node 18+ e a CLI do Vercel:
+Requer Node 18+ e a CLI **Wrangler**:
 
 ```bash
-npm install -g vercel
-cd /home/mike/plsalaexames
-vercel link              # associa esta pasta ao projeto Vercel (uma vez)
-vercel env pull          # baixa POSTGRES_URL para .env.local
-npm install
-vercel dev               # arranca em http://localhost:3000
+npm install -g wrangler
+wrangler login
+wrangler d1 create reservas-local         # cria DB local em .wrangler/state
+wrangler pages dev public --d1=DB         # abre http://localhost:8788
 ```
-
-Sem o `vercel env pull` o `vercel dev` arranca mas o POST das reservas falha (não há DB).
 
 ## Desligar quando os exames acabarem
 
-1. Dashboard Vercel → projeto `plsalaexames` → **Settings** → **General** → fundo da página → **Delete Project**
-2. Dashboard Vercel → **Storage** → base de dados `reservas` → **Settings** → **Delete Database**
+1. Dashboard → projeto `plsalaexames` → **Settings** → fundo da página → **Delete project**.
+2. Dashboard → **D1** → `reservas` → **Settings** → **Delete database**.
 
-Custo final: **0 €**. (Ambos os recursos cabem no plano Hobby gratuito do Vercel desde que o tráfego seja moderado, que para ~30 professores é trivial.)
+Custo final: **0 €**.
 
-## Salas e calendário
-
-`exam-schedule.json`:
+## Formato do `exam-schedule.json`
 
 ```json
 {
   "rooms": [28, 29, 30, 31, 32, 36],
   "dayEndsAt": "21:00",
   "examDays": {
-    "2026-06-16": { "lastExamEnds": "17:30", "_exams": "..." },
-    ...
+    "2026-06-16": { "lastExamEnds": "17:30", "_exams": "..." }
   }
 }
 ```
 
 - `rooms`: lista das salas reserváveis.
-- `dayEndsAt`: hora a partir da qual já não se aceitam reservas (HH:MM, 24h).
-- `examDays`: dicionário de `YYYY-MM-DD` → `{ lastExamEnds, _exams }`. Só dias listados aqui aceitam reservas.
-- `_exams`: descrição livre (separar com `·`) mostrada no painel "Exames neste dia".
+- `dayEndsAt`: hora limite das reservas (HH:MM, 24h).
+- `examDays`: dicionário `YYYY-MM-DD` → `{ lastExamEnds, _exams }`. Apenas estas datas são reserváveis.
+- `_exams`: descrição livre dos exames do dia (separados por `·`), mostrada no painel.

@@ -2,12 +2,10 @@
   "name": "plsalaexames",
   "version": "1.0.0",
   "description": "Reserva de salas — Época de Exames, Escola Secundária José Falcão",
+  "private": true,
   "scripts": {
-    "dev": "vercel dev",
-    "deploy": "vercel --prod"
-  },
-  "dependencies": {
-    "@vercel/postgres": "^0.10.0"
+    "dev": "wrangler pages dev public --d1=DB",
+    "db:exec": "wrangler d1 execute reservas --command"
   },
   "engines": {
     "node": ">=18"
