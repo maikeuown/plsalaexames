@@ -4,8 +4,7 @@
   "description": "Reserva de salas — Época de Exames, Escola Secundária José Falcão",
   "private": true,
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
+    "dev": "wrangler pages dev public --d1=DB",
     "db:exec": "wrangler d1 execute reservas --command"
   },
   "engines": {
