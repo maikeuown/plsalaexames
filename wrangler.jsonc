@@ -1,14 +1,16 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "plsalaexames",
+  "main": "src/index.js",
   "compatibility_date": "2026-05-19",
-  "observability": {
-    "enabled": true
-  },
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
   "assets": {
-    "directory": "public"
-  },
-  "compatibility_flags": [
-    "nodejs_compat"
-  ]
+    "directory": "public",
+    "binding": "ASSETS"
+  }
+  // A binding D1 com nome "DB" deve ser adicionada via Dashboard:
+  // Worker → Settings → Variables → D1 database bindings → Add binding
+  //   Variable name: DB
+  //   D1 database: reservas
 }
