@@ -55,7 +55,7 @@ Por SSH (recomendado):
 ```bash
 # como o user da conta cPanel (não root)
 cd ~
-git clone https://github.com/maikelitoris/plsalaexames.git
+git clone https://github.com/maikeuown/plsalaexames.git
 cd plsalaexames
 ```
 
