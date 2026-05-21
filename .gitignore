@@ -1,11 +1,9 @@
 node_modules/
-.wrangler/
-.dev.vars
+data.db
+data.db-journal
+data.db-wal
+data.db-shm
 .env
 .env.*.local
 *.log
 *:Zone.Identifier
-
-.dev.vars*
-!.dev.vars.example
-!.env.example

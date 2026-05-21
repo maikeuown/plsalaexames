@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "description": "Reserva de salas — Época de Exames, Escola Secundária José Falcão",
   "private": true,
+  "main": "server.js",
   "scripts": {
-    "dev": "wrangler pages dev public --d1=DB",
-    "db:exec": "wrangler d1 execute reservas --command"
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "express": "^4.21.0"
   },
   "engines": {
     "node": ">=18"
-  },
-  "devDependencies": {
-    "wrangler": "^4.93.0"
   }
 }

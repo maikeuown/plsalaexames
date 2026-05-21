@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin · Reserva de Salas</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/admin.css" />
+</head>
+<body class="admin">
+  <header>
+    <h1>Painel de Administração</h1>
+    <p class="subtitle">Reserva de Salas · Escola Secundária José Falcão</p>
+  </header>
+
+  <main id="admin-app">
+    <!-- login -->
+    <section id="login-panel" class="panel login">
+      <h2>Entrar</h2>
+      <form id="login-form">
+        <label>
+          Palavra-passe de administrador
+          <input id="login-password" type="password" required autofocus autocomplete="current-password" />
+        </label>
+        <button type="submit">Entrar</button>
+        <p id="login-msg" class="msg"></p>
+      </form>
+    </section>
+
+    <!-- dashboard -->
+    <section id="dashboard" class="panel" hidden>
+      <div class="dashboard-head">
+        <h2>Gestão de Reservas</h2>
+        <div class="dashboard-actions">
+          <button id="refresh-btn" class="btn-ghost" type="button">Atualizar</button>
+          <button id="logout-btn" class="btn-ghost" type="button">Sair</button>
+        </div>
+      </div>
+
+      <div id="stats" class="stats">
+        <div class="stat-card"><div class="stat-num" id="stat-total">—</div><div class="stat-label">reservas no total</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-days">—</div><div class="stat-label">dias com reservas</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-top-room">—</div><div class="stat-label">sala mais reservada</div></div>
+      </div>
+
+      <div class="filter-bar">
+        <label>
+          Filtrar por dia
+          <select id="filter-date"><option value="">Todos os dias</option></select>
+        </label>
+        <label>
+          Filtrar por sala
+          <select id="filter-room"><option value="">Todas</option></select>
+        </label>
+        <input id="filter-search" type="search" placeholder="Procurar por professor ou motivo…" />
+        <span class="spacer"></span>
+        <button id="export-csv" class="btn-ghost" type="button">Exportar CSV</button>
+        <button id="delete-all-btn" class="btn-danger" type="button">Apagar todas</button>
+      </div>
+
+      <div class="table-wrap">
+        <table id="admin-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Dia</th>
+              <th>Hora</th>
+              <th>Sala</th>
+              <th>Professor</th>
+              <th>Motivo</th>
+              <th>Criada em</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <p id="empty" class="help" hidden>Sem reservas.</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="/admin.js"></script>
+</body>
+</html>
