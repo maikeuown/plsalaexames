@@ -1,142 +1,59 @@
-# Reserva de Salas — Época de Exames
+# Exam Room Booking — Escola Secundária José Falcão
 
-Aplicação web para a Escola Secundária José Falcão. Permite a professores reservar uma das 6 salas (28, 29, 30, 31, 32, 36) em blocos de 1 hora, em dias de exame, após o último exame do dia terminar. Por ordem de chegada, sem autenticação. **As reservas são permanentes** para os utilizadores; um administrador pode apagá-las pelo painel `/admin`.
+🇵🇹 [Versão portuguesa e guia completo de deploy](README.pt.md)
 
-Stack: Node.js (Express) + SQLite. Sem dependências externas, sem cloud — corre num único processo num VPS.
+A small web app built for Escola Secundária José Falcão (Coimbra, Portugal). During exam season, rooms become free once the day's last exam ends. Teachers use this app to book one of 6 rooms in 1-hour slots for those free periods.
 
-## Estrutura
+Teachers see every free slot in one place and book on a first-come, first-served basis, with no login needed. Staff manage bookings from an admin panel.
 
-- `server.js` — servidor Express + endpoints REST
-- `public/` — frontend (booking + admin)
-- `exam-schedule.json` — calendário editável (salas, dias, horas)
-- `data.db` — SQLite (criado automaticamente; **não comitar**)
+## Features
 
-## Endpoints
+- **Booking page:** shows each exam day, which rooms are free after the last exam, and the 1-hour slots left until the end of the day.
+- **Editable schedule:** exam days, rooms and end times live in `exam-schedule.json`. The file is reloaded on each request, so edits apply without a restart.
+- **Admin panel** (`/admin`): list all bookings, delete one or all, and view statistics (total, per day, per room).
+- **Zero cloud dependencies:** one Node.js process and one SQLite file, deployable on any small VPS or cPanel host.
 
-**Públicos**
-- `GET /` — página de reservas
-- `GET /api/schedule` — calendário
-- `GET /api/reservations` — listar reservas
-- `POST /api/reservations` — criar reserva
+## Tech stack
 
-**Admin** (`x-admin-password` header obrigatório, ou `?password=` na query)
-- `GET /admin` — painel HTML
-- `POST /api/admin/login` — validar password
-- `GET /api/admin/reservations` — todas as reservas
-- `DELETE /api/admin/reservations/:id` — apagar uma
-- `DELETE /api/admin/reservations` — apagar todas
-- `GET /api/admin/stats` — total, por dia, por sala
+- **Back-end:** Node.js, Express, REST API
+- **Database:** SQLite (`better-sqlite3`)
+- **Front-end:** plain HTML, CSS and JavaScript (no framework)
 
-## Variáveis de ambiente
+## API
 
-| Variável | Default | Descrição |
+**Public**
+| Method | Endpoint | Description |
 |---|---|---|
-| `PORT` | `3000` | Porto HTTP |
-| `DB_PATH` | `./data.db` | Caminho do ficheiro SQLite |
-| `ADMIN_PASSWORD` | (vazia) | Password do `/admin`. **Sem esta, /admin está desativado.** |
+| GET | `/api/schedule` | Exam calendar and rooms |
+| GET | `/api/reservations` | List bookings |
+| POST | `/api/reservations` | Create a booking |
 
-## Correr localmente
+**Admin** (requires the `x-admin-password` header)
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/admin/login` | Validate the password |
+| GET | `/api/admin/reservations` | All bookings |
+| DELETE | `/api/admin/reservations/:id` | Delete one booking |
+| DELETE | `/api/admin/reservations` | Delete all bookings |
+| GET | `/api/admin/stats` | Totals per day and per room |
+
+The admin password is only accepted in the request header or body, never in the URL, so it can't leak into browser history or server logs. It is compared in constant time.
+
+## Run locally
 
 ```bash
 npm install
-ADMIN_PASSWORD=algumacoisa npm start
-# abrir http://localhost:3000
-# admin em http://localhost:3000/admin
+ADMIN_PASSWORD=change-me npm start
+# booking page: http://localhost:3000
+# admin panel:  http://localhost:3000/admin
 ```
 
-## Deploy em cPanel / WHM (AlmaLinux)
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `3000` | HTTP port |
+| `DB_PATH` | `./data.db` | SQLite file path |
+| `ADMIN_PASSWORD` | (empty) | Admin password. If unset, `/admin` is disabled. |
 
-cPanel tem suporte nativo para apps Node.js. Não é preciso configurar Apache à mão.
+## Deployment
 
-### 1. Pôr o código no VPS
-
-Por SSH (recomendado):
-
-```bash
-# como o user da conta cPanel (não root)
-cd ~
-git clone https://github.com/maikeuown/plsalaexames.git
-cd plsalaexames
-```
-
-Ou via File Manager: criar pasta `plsalaexames` em `~/` e fazer upload do conteúdo do repo (sem `node_modules`).
-
-### 2. Criar a app Node.js no cPanel
-
-Login no **cPanel** (não WHM) → secção **Software** → **Setup Node.js App** → **Create Application**:
-
-| Campo | Valor |
-|---|---|
-| Node.js version | `20.x` (ou superior) |
-| Application mode | `Production` |
-| Application root | `plsalaexames` (caminho relativo a `~`) |
-| Application URL | escolher domínio/subdomínio (ex.: `reservas.escolajosefalcao.pt`) |
-| Application startup file | `server.js` |
-
-Carregar em **Create**.
-
-### 3. Definir variáveis de ambiente
-
-Ainda na página da app, secção **Environment variables**:
-- `ADMIN_PASSWORD` = `<uma palavra-passe forte que só tu saibas>`
-- `PORT` deixar como o cPanel definiu (gere automaticamente)
-
-Carregar em **Save**.
-
-### 4. Instalar dependências
-
-Na mesma página, carregar em **Run NPM Install**. Espera até terminar (60–90 s — `better-sqlite3` compila em C).
-
-> Se aparecer erro a compilar `better-sqlite3` (falta gcc/g++/python3): pede no WHM para instalar `gcc-c++ make python3` via **EasyApache 4** ou por SSH como root: `dnf install -y gcc-c++ make python3`.
-
-### 5. Arrancar
-
-Carregar em **Start App**. Estado deve ficar **Running**.
-
-### 6. Subdomínio + SSL
-
-Em **Domains** → **Subdomains** criar um subdomínio que aponte para a app (a app URL definida em cima já faz isto).
-
-Em **Security** → **SSL/TLS Status** → **Run AutoSSL** para obter HTTPS automático (Let's Encrypt).
-
-### 7. Testar
-
-- `https://teu-dominio/` — booking
-- `https://teu-dominio/admin` — entra com a `ADMIN_PASSWORD`
-
-### Atualizar depois
-
-Edita o ficheiro (ex. `exam-schedule.json`) e:
-
-```bash
-cd ~/plsalaexames
-git pull
-```
-
-No cPanel → Setup Node.js App → **Restart** na linha da app.
-
-## Editar o calendário
-
-`exam-schedule.json`:
-
-```json
-{
-  "rooms": [28, 29, 30, 31, 32, 36],
-  "dayEndsAt": "21:00",
-  "examDays": {
-    "2026-06-16": { "lastExamEnds": "17:30", "_exams": "9h30 12º Português..." }
-  }
-}
-```
-
-O calendário é relido a cada pedido. Editar o JSON e refrescar a página é suficiente — não precisa reiniciar.
-
-## Backup
-
-A base de dados é o ficheiro `data.db` na pasta da app. Para backup:
-
-```bash
-cp ~/plsalaexames/data.db ~/backups/data-$(date +%F).db
-```
-
-(O cPanel também faz backup automático da home se isso estiver ativado.)
+Runs on a cPanel/AlmaLinux VPS using cPanel's built-in Node.js app support, with AutoSSL (Let's Encrypt) for HTTPS. The step-by-step guide (in Portuguese, for school staff) is in [README.pt.md](README.pt.md).
