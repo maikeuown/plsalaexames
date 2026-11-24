@@ -4,6 +4,7 @@ const express = require('express');
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 
 const PORT = process.env.PORT || 3000;
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data.db');
@@ -144,8 +145,12 @@ function requireAdmin(req, res, next) {
   if (!ADMIN_PASSWORD) {
     return res.status(503).json({ error: 'Admin não configurado. Defina ADMIN_PASSWORD.' });
   }
-  const pw = req.get('x-admin-password') || (req.body && req.body.password) || req.query.password;
-  if (pw !== ADMIN_PASSWORD) {
+  // Só header ou body: nunca na query string (ficaria nos logs e no histórico do browser).
+  const pw = req.get('x-admin-password') || (req.body && req.body.password) || '';
+  const a = Buffer.from(String(pw));
+  const b = Buffer.from(ADMIN_PASSWORD);
+  // Comparação em tempo constante para não revelar a password por timing.
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
     return res.status(401).json({ error: 'Palavra-passe inválida.' });
   }
   next();
